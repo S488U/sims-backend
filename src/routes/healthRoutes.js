@@ -18,7 +18,8 @@ router.get("/", (req, res) => {
     message: "working",
     status: "200",
     uptime: formatUptime(process.uptime()),
-    endpointsList: "/endpoints.txt",
+    endpointsList: `${req.protocol}://${req.get("host")}${req.originalUrl}endpoints.txt`,
+    API_DOC: "https://documenter.getpostman.com/view/32326364/2sB2cUANcX",
   });
 });
 
