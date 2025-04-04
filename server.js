@@ -3,6 +3,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { generalLimiter, authLimiter } from "./src/utils/rateLimiter.js";
+import path from "path";
 import connectDB from "./src/config/db.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 import { createError } from "./src/utils/errorUtils.js";
@@ -16,6 +17,7 @@ import categoryRoutes from "./src/routes/categoryRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3500;
+const __dirname = path.resolve();
 
 (async () => {
     try {
@@ -32,7 +34,7 @@ const port = process.env.PORT || 3500;
 
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(express.static("public"));
+    app.use(express.static(path.join(__dirname, "public")));
   
     app.use("/", healthRoute);
     app.use("/login", authRoutes);

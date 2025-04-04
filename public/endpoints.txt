@@ -3,17 +3,36 @@
 -----------------------------------
 
 GET /
+
+POST /api/admin/create
+POST /login #both login for admin and user
+
+
 GET /api/user 
 GET /api/user/:id
 POST /api/user
+PUT /api/user/:id
+PATCH /api/user/:id
+DELETE /api/user/:id
 
-POST /api/admin/create
+GET /api/supplier 
+GET /api/supplier/:id
+POST /api/supplier
+PUT /api/supplier/:id
+PATCH /api/supplier/:id
+DELETE /api/supplier/:id
+
+GET /api/category 
+POST /api/category
+PATCH /api/category/:id
+DELETE /api/category/:id
+
+POST /api/admin/login
 
 
 -----------------------------------
             Working on: 
 -----------------------------------
-PUT /api/user/:id
-PATCH /api/user/:id
-DELETE /api/user/:id
-POST /api/admin/login
+products
+
+order
