@@ -1,0 +1,19 @@
+-----------------------------------
+            created:
+-----------------------------------
+
+GET /
+GET /api/user 
+GET /api/user/:id
+POST /api/user
+
+POST /api/admin/create
+
+
+-----------------------------------
+            Working on: 
+-----------------------------------
+PUT /api/user/:id
+PATCH /api/user/:id
+DELETE /api/user/:id
+POST /api/admin/login
