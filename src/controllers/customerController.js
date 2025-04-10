@@ -96,13 +96,13 @@ export const createCustomer = asyncHandler(async (req, res, next) => {
 // @ Update Customer Details All at once
 export const updateCustomer = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, password } = req.body;
+  const { name, email, phone, address, password } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(createError("Invalid Customer ID", 400));
   }
 
-  const validationResult = verifyData({ name, email, password });
+  const validationResult = verifyData({ name, email, phone, address, password });
 
   if (!validationResult.success) {
     return next(createError(validationResult.message, 403));
@@ -110,7 +110,7 @@ export const updateCustomer = asyncHandler(async (req, res, next) => {
 
   const hashedPassword = await hashPassword(password);
 
-  let retailer = await Customers.findByIdAndUpdate(id, { $set: { name, email, password: hashedPassword } }, { new: true, timestamps: true });
+  let retailer = await Customers.findByIdAndUpdate(id, { $set: { name, email, phone, address, password: hashedPassword } }, { new: true, timestamps: true });
 
   if (!retailer) {
     return next(createError(`Customer with ID: ${id} not found!`, 404));
@@ -120,7 +120,7 @@ export const updateCustomer = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     message: "Customer Data Updated successfully",
-    success: true, 
+    success: true,
     statusCode: 200,
     retailer,
   });
@@ -129,7 +129,7 @@ export const updateCustomer = asyncHandler(async (req, res, next) => {
 
 export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, password } = req.body;
+  const { name, email, phone, address, password } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(createError("Invalid Customer ID", 400));
@@ -138,6 +138,8 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   const updateFields = {};
   if (name) updateFields.name = name;
   if (email) updateFields.email = email;
+  if (phone) updateFields.phone = phone;
+  if (address) updateFields.address = address;
   if (password) updateFields.password = password;
 
   const validationResult = verifyData(updateFields);
@@ -158,7 +160,7 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     message: "Customers data updated successfully",
-    success: true, 
+    success: true,
     statusCode: 200,
     columnsUpdated: Object.keys(updateFields),
   });

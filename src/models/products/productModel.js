@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-// import Suppliers from "../suppliers/suppliersModel.js";
-// import Category from "../category/categoryModel.js";
 
 const productSchema = mongoose.Schema(
     {
@@ -30,6 +28,8 @@ const productSchema = mongoose.Schema(
         timestamps: true,
     }
 );
+
+productSchema.index({ name: 1, supplierId: 1, categoryId: 1 }, { unique: true });
 
 const Products = mongoose.model("Products", productSchema);
 export default Products;
