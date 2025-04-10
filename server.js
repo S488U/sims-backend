@@ -30,6 +30,7 @@ const __dirname = path.resolve();
   
     app.use(cors());
   
+    app.set('trust proxy', 1);
     app.use(generalLimiter);
     app.use(appLogger);
 
