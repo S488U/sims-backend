@@ -25,6 +25,14 @@ export const verifyData = (data) => {
       message: "Description must contain only letters & spaces (3-150 characters)",
       optional: true,
     },
+    pricePerItem: {
+      regex: /^[0-9]+(\.[0-9]{1,2})?$/,
+      message: "Price must be a number with up to 2 decimal places",
+    },
+    price: {
+      regex: /^[0-9]+(\.[0-9]{1,2})?$/,
+      message: "Price must be a number with up to 2 decimal places",
+    }
   };
 
   if (Object.keys(data).length === 0) {
@@ -35,12 +43,14 @@ export const verifyData = (data) => {
     if (!value && !validationRules[field]?.optional) {
       return { success: false, message: `${field} is required` };
     }
-    if (
-      validationRules[field] && !validationRules[field].regex.test(String(value))
-    ) {
+
+    if (validationRules[field] && !validationRules[field].regex.test(String(value))) {
       return { success: false, message: validationRules[field].message };
     }
   }
 
   return { success: true };
 };
+
+
+// console.log(verifyData({price: 10, pricePerItem: "dfd", name : " Shahabas ", price: "30"}));

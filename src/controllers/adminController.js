@@ -21,7 +21,7 @@ export const createAdmin = asyncHandler(async (req, res, next) => {
 
   let admin = await Admin.findOne({ email });
   if (admin) {
-    return next(createError("User already exist", 409));
+    return next(createError("Admin already exist", 409));
   }
 
   const hashedPassword = await hashPassword(password);
@@ -31,7 +31,7 @@ export const createAdmin = asyncHandler(async (req, res, next) => {
 
   res
     .status(201)
-    .json({ message: "User account created successfully", status: 201 });
+    .json({ message: "Admin account created successfully", status: 201 });
 });
 
 // @ Admin Login

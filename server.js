@@ -10,10 +10,11 @@ import { createError } from "./src/utils/errorUtils.js";
 import { appLogger } from "./src/middlewares/logger.js";
 import healthRoute from "./src/routes/healthRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
-import userRoutes from "./src/routes/userRoutes.js";
+import customerRoutes from "./src/routes/customerRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import supplierRoutes from "./src/routes/supplierRoutes.js";
 import categoryRoutes from "./src/routes/categoryRoutes.js";
+// import productRoutes from "./src/routes/productRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3500;
@@ -39,9 +40,10 @@ const __dirname = path.resolve();
     app.use("/", healthRoute);
     app.use("/login", authRoutes);
     app.use("/api/admin", adminRoutes);
-    app.use("/api/user", userRoutes)
+    app.use("/api/customer", customerRoutes)
     app.use("/api/supplier", supplierRoutes);
     app.use("/api/category", categoryRoutes);
+    // app.use("/api/products", productRoutes);
   
     app.use((req, res, next) => {
       next(createError("Route Not Found", 404));

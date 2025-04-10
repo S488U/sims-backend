@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import Admin from "../models/admin/adminModel.js";
-import Retailers from "../models/retailers/retailersModel.js";
+import Customers from "../models/customers/customerModel.js";
 import { verifyData } from "../utils/verifyData.js";
 import { createError } from "../utils/errorUtils.js";
 import { isPasswordValid } from "../utils/hashPassword.js";
@@ -14,7 +14,7 @@ const generateToken = (id, isAdmin) => {
     return jwt.sign({id, isAdmin}, process.env.JWT_TOKEN, { expiresIn: "7d" });
 }
 
-// @ Both login for Retailers and Admin
+// @ Both login for Customers and Admin
 export const login = asyncHandler( async(req, res, next) => {
     const {email, password} = req.body;
 
@@ -23,7 +23,7 @@ export const login = asyncHandler( async(req, res, next) => {
         return next(createError(verificationResult.message, 403));
     }
 
-    let user = await Retailers.findOne({ email });
+    let user = await Customers.findOne({ email });
     let isAdmin = false;
 
     if(!user) {

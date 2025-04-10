@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { createError } from "../utils/errorUtils.js";
 import Admin from "../models/admin/adminModel.js";
-import Retailers from "../models/retailers/retailersModel.js";
+import Customers from "../models/customers/customerModel.js";
 import { asyncHandler } from "./asyncHandler.js";
 
 export const verifyToken = asyncHandler(async (req, res, next) => {
@@ -24,10 +24,10 @@ export const verifyToken = asyncHandler(async (req, res, next) => {
             }
 
         } else {
-            req.user = await Retailers.findById(decodedToken.id).select("-password");
-            console.log(req.user);
-            if (!req.user) {
-                return next(createError("No user found", 404));
+            req.customers = await Customers.findById(decodedToken.id).select("-password");
+            console.log(req.customers);
+            if (!req.customers) {
+                return next(createError("No customers found", 404));
             }
         }
 

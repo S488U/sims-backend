@@ -42,7 +42,8 @@ export const addCategory = asyncHandler(async (req, res, next) => {
 
 export const updateCategory = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { description } = req.body;
+    let name = req.body.name.toLowerCase();
 
     if (!mongoose.Types.ObjectId.isValid(id)) return next(createError("Invalid Category Id", 400));
 
