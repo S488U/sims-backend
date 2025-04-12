@@ -12,9 +12,9 @@ const productSchema = mongoose.Schema(
             required: true,
             trim: true,
         },
-        categoryId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Category",
+        category: {
+            type: String,
+            trim: true,
             required: true,
         },
         pricePerItem : {
@@ -29,7 +29,7 @@ const productSchema = mongoose.Schema(
     }
 );
 
-productSchema.index({ name: 1, supplierId: 1, categoryId: 1 }, { unique: true });
+productSchema.index({ name: 1, supplierId: 1 }, { unique: true });
 
 const Products = mongoose.model("Products", productSchema);
 export default Products;

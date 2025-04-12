@@ -4,8 +4,8 @@ import Products from "../models/products/productModel.js";
 import { verifyData } from "../utils/verifyData.js";
 import mongoose, { Mongoose } from "mongoose";
 import Suppliers from "../models/suppliers/suppliersModel.js";
-import Category from "../models/category/categoryModel.js";
 
+// @ GET: /api/products
 export const getProducts = asyncHandler(async (req, res, next) => {
     const products = await Products.find();
 
@@ -21,6 +21,7 @@ export const getProducts = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ GET: /api/products/:productId
 export const getSingleProduct = asyncHandler(async (req, res, next) => {
     const productId = req.params.productId;
 
@@ -28,7 +29,7 @@ export const getSingleProduct = asyncHandler(async (req, res, next) => {
         return next(createError("Product ID is missing or Invalid ID", 400));
     }
 
-    const getProduct = await Products.findById(productId).select("_id name categoryId supplierId pricePerItem");
+    const getProduct = await Products.findById(productId).select("_id name category supplierId pricePerItem");
     if (!getProduct) {
         return next(createError(`The Product with this ID ${productId} does not found`, 404));
     }
@@ -41,44 +42,40 @@ export const getSingleProduct = asyncHandler(async (req, res, next) => {
     })
 });
 
-export const getQueriedProducts = asyncHandler(async (req, res, next) => {
-    const { supplierId, categoryId } = req.query;
 
-    if (!supplierId && !categoryId) {
-        return next(createError("Supplier ID or category ID is required", 400));
+export const getSupplierProduct = asyncHandler(async (req, res, next) => {
+    const { supplier } = req.query;
+
+    if (!supplier) {
+        return next(createError("Supplier ID is required", 400));
     }
 
-    const [checkSupplier, checkCategory] = await Promise.all([
-        supplierId ? Suppliers.findById(supplierId) : null,
-        categoryId ? Category.findById(categoryId) : null,
-    ]);
-
-    if (supplierId && !checkSupplier) {
-        return next(createError(`Supplier with Id: ${supplierId} does not exist`, 400));
+    if (!mongoose.Types.ObjectId.isValid(supplier)) {
+        return next(createError(`Invalid Supplier ID: ${supplier}`, 400));
     }
 
-    if (categoryId && !checkCategory) {
-        return next(createError(`Category with Id: ${categoryId} does not exits`, 400));
+    const checkSupplier = await Suppliers.findById(supplier);
+
+    if (!checkSupplier) {
+        return next(createError(`Supplier with Id: ${supplier} does not exist`, 400));
     }
 
-    let dynamicQuery = {};
-    if (supplierId) dynamicQuery.supplierId = supplierId;
-    if (categoryId) dynamicQuery.categoryId = categoryId;
 
-
-    const products = await Products.find(dynamicQuery);
+    const products = await Products.find({ supplierId: supplier }).select("-__v");
     if (products.length <= 0) {
-        return next(createError("There are no products found", 404));
+        return next(createError(`There are no products found in this supplier Id: ${supplier}`, 404));
     }
 
     res.status(200).json({
-        message: `There are ${products.length} products found`,
+        message: `There are ${products.length} products found in this supplier`,
         success: true,
         statusCode: 200,
         products,
     });
 });
 
+
+// @ POST: /api/products
 export const addProducts = asyncHandler(async (req, res, next) => {
 
     const allProducts = req.body.products;
@@ -90,10 +87,11 @@ export const addProducts = asyncHandler(async (req, res, next) => {
     let finalProduct = [];
 
     for (let products of allProducts) {
-        let { name, supplierId, categoryId, pricePerItem } = products;
+        let { name, supplierId, category, pricePerItem } = products;
         products.name = products.name.trim().toLowerCase();
+        products.category = products.category.trim().toLowerCase();
 
-        if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(categoryId)) {
+        if (!mongoose.Types.ObjectId.isValid(supplierId)) {
             return next(createError(`${name}: Supplier Id or Category Id is invalid`, 400));
         }
 
@@ -102,29 +100,24 @@ export const addProducts = asyncHandler(async (req, res, next) => {
             return next(createError(`Supplier with this Id: ${supplierId} does not exist`, 400));
         }
 
-        const categoryExists = await Category.findById(categoryId);
-        if (!categoryExists) {
-            return next(createError(`Category with this Id: ${categoryId} does not exist`, 400));
-        }
-
         products.pricePerItem = parseFloat(products.pricePerItem);
         if (isNaN(products.pricePerItem)) {
             return next(createError("PricePerItem must be a number", 400));
         }
 
-        const verificationResult = verifyData({ name, pricePerItem });
+        const verificationResult = verifyData({ name, pricePerItem, name: category });
         if (!verificationResult.success) {
             return next(createError(verificationResult.message, 400));
         }
 
         const existingProduct = await Products.findOne({
             supplierId: products.supplierId,
-            categoryId: products.categoryId,
+            category: products.category,
             name: products.name,
         });
 
         if (existingProduct) {
-            return next(createError(`Product ${products.name} already exist in the same supplierID ${products.supplierId} and categoryID ${products.categoryId} `, 400));
+            return next(createError(`Product ${products.name} already exist in the same supplierID ${products.supplierId} and category ${products.category} `, 400));
         }
 
         finalProduct.push(products);
@@ -143,6 +136,8 @@ export const addProducts = asyncHandler(async (req, res, next) => {
     })
 });
 
+
+// @ PUT: /api/products
 export const updateAllProducts = asyncHandler(async (req, res, next) => {
     const updatedProducts = req.body.products;
 
@@ -153,21 +148,17 @@ export const updateAllProducts = asyncHandler(async (req, res, next) => {
     let finalProduct = [];
 
     for (let product of updatedProducts) {
-        let { name, supplierId, categoryId, pricePerItem } = product;
-        product.name = name.toLowerCase();
+        let { name, supplierId, category, pricePerItem } = product;
+        product.name = name.trim().toLowerCase();
+        product.category = category.trim().toLowerCase();
 
-        if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(categoryId)) {
-            return next(createError("The supplier Id or category Id is Invalid", 400));
+        if (!mongoose.Types.ObjectId.isValid(supplierId)) {
+            return next(createError("The supplier Id is Invalid", 400));
         }
 
         const supplierExists = await Suppliers.findById(supplierId);
         if (!supplierExists) {
             return next(createError(`Supplier with this Id: ${supplierId} does not exist`, 400));
-        }
-
-        const categoryExists = await Category.findById(categoryId);
-        if (!categoryExists) {
-            return next(createError(`Category with this Id: ${categoryId} does not exist`, 400));
         }
 
         product.pricePerItem = parseFloat(pricePerItem);
@@ -177,20 +168,20 @@ export const updateAllProducts = asyncHandler(async (req, res, next) => {
 
         console.log(product)
 
-        const verificationResult = verifyData({ name: product.name, pricePerItem: product.pricePerItem });
+        const verificationResult = verifyData({ name: product.name, pricePerItem: product.pricePerItem, name: product.category });
         if (!verificationResult.success) {
             return next(createError(verificationResult.message, 400));
         }
 
         const existingProduct = await Products.findOne({
             supplierId: product.supplierId,
-            categoryId: product.categoryId,
+            category: product.category,
             name: product.name
         });
 
         console.log(existingProduct);
         if (!existingProduct) {
-            return next(createError(`The product ${name} with supplier id ${supplierId} and category id: ${categoryId} does not exist`));
+            return next(createError(`The product ${name} with supplier id ${supplierId} and category: ${category} does not exist`));
         }
 
         finalProduct.push({

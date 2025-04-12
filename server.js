@@ -13,7 +13,6 @@ import adminRoutes from "./src/routes/adminRoutes.js";
 import customerRoutes from "./src/routes/customerRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import supplierRoutes from "./src/routes/supplierRoutes.js";
-import categoryRoutes from "./src/routes/categoryRoutes.js";
 import productRoutes from "./src/routes/productRoutes.js";
 
 const app = express();
@@ -43,7 +42,6 @@ const __dirname = path.resolve();
     app.use("/api/admin", adminRoutes);
     app.use("/api/customer", customerRoutes)
     app.use("/api/supplier", supplierRoutes);
-    app.use("/api/category", categoryRoutes);
     app.use("/api/products", productRoutes);
   
     app.use((req, res, next) => {
