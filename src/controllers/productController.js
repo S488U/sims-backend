@@ -42,7 +42,7 @@ export const getSingleProduct = asyncHandler(async (req, res, next) => {
     })
 });
 
-
+// @ GET: /api/products/get?supplier=<supplier_id>
 export const getSupplierProduct = asyncHandler(async (req, res, next) => {
     const { supplier } = req.query;
 
