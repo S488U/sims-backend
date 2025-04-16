@@ -14,6 +14,7 @@ import customerRoutes from "./src/routes/customerRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import supplierRoutes from "./src/routes/supplierRoutes.js";
 import productRoutes from "./src/routes/productRoutes.js";
+import inventoryRoutes from "./src/routes/inventoryRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3500;
@@ -43,6 +44,7 @@ const __dirname = path.resolve();
     app.use("/api/customer", customerRoutes)
     app.use("/api/supplier", supplierRoutes);
     app.use("/api/products", productRoutes);
+    app.use("/api/inventory", inventoryRoutes);
   
     app.use((req, res, next) => {
       next(createError("Route Not Found", 404));
