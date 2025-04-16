@@ -39,6 +39,52 @@ export const getSingleInventory = asyncHandler(async (req, res, next) => {
     });
 });
 
+// export const addInventory = asyncHandler(async (req, res, next) => {
+//     let { supplierId, productId, supplierName, productName, category, quantity } = req.body;
+
+//     if (!supplierId || !productId || !supplierName || !productName || !category || !quantity) {
+//         return next(createError("All fields are required", 400));
+//     }
+
+//     if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(productId)) {
+//         return next(createError("Invalid Supplier or Product ID", 400));
+//     }
+
+//     supplierName = supplierName.trim().toLowerCase();
+//     productName = productName.trim().toLowerCase();
+//     category = category.trim().toLowerCase();
+
+//     const result = verifyData({ name: supplierName, name: productName, name: category });
+//     if (!result.success) {
+//         return next(createError(result.message, 400));
+//     }
+
+//     const newQuantity = parseInt(quantity);
+//     if (isNaN(newQuantity)) {
+//         return next(createError("Quantity Must be a number", 400));
+//     }
+
+//     let getSupplier = await Suppliers.findById(supplierId);
+//     if (!getSupplier) {
+//         return next(createError(`Supplier not found in this ID : ${supplierId}`, 404));
+//     }
+
+//     const productExist = getSupplier.products.some(product => product._id.toString() === productId);
+//     if (!productExist) {
+//         return next(createError(`Product not found in supplier's product list`, 404));
+//     }
+
+//     const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, quantity: newQuantity });
+//     await newInventory.save();
+
+//     res.status(201).json({
+//         message: "Inventory added successfully",
+//         success: true,
+//         statusCode: 201,
+//         Inventory: newInventory,
+//     });
+// });
+
 export const addInventory = asyncHandler(async (req, res, next) => {
     const { supplierId, productId, quantity } = req.body;
 
@@ -48,6 +94,11 @@ export const addInventory = asyncHandler(async (req, res, next) => {
 
     if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(productId)) {
         return next(createError("Invalid Supplier or Product ID", 400));
+    }
+
+    const checkInventory = await Inventory.find({ supplierId, productId });
+    if(checkInventory.length > 0) {
+        return next(createError("Inventory exist in the supplier and the product", 400));
     }
 
     const newQuantity = parseInt(quantity);
@@ -60,12 +111,17 @@ export const addInventory = asyncHandler(async (req, res, next) => {
         return next(createError(`Supplier not found in this ID : ${supplierId}`, 404));
     }
 
-    const productExist = getSupplier.products.some(product => product._id.toString() === productId);
+    const supplierName = getSupplier.name;
+
+    const productExist = getSupplier.products.find(product => product._id.toString() === productId); 
     if (!productExist) {
         return next(createError(`Product not found in supplier's product list`, 404));
     }
 
-    const newInventory = new Inventory({ supplierId, productId, quantity: newQuantity });
+    const productName = productExist.name;
+    const category = productExist.category;
+
+    const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, quantity: newQuantity });
     await newInventory.save();
 
     res.status(201).json({

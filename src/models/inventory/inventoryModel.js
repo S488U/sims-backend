@@ -8,8 +8,20 @@ const inventorySchema = mongoose.Schema(
             ref: "Suppliers",
             required: true,
         },
+        supplierName: {
+            type: String,
+            required: true,
+        },
         productId: {
             type: mongoose.Schema.Types.ObjectId,
+            required: true,
+        },
+        productName: {
+            type: String,
+            required: true,
+        },
+        category: {
+            type: String,
             required: true,
         },
         quantity: {
