@@ -1,10 +1,10 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import { createError } from "../utils/errorUtils.js";
 import mongoose from "mongoose";
-import { verifyData } from "../utils/verifyData.js";
 import Inventory from "../models/inventory/inventoryModel.js";
 import Suppliers from "../models/suppliers/suppliersModel.js";
 
+// @ GET: /api/inventory
 export const getInventory = asyncHandler(async (req, res, next) => {
     const inventory = await Inventory.find().select("-__v");
     if (inventory.length === 0) {
@@ -19,6 +19,7 @@ export const getInventory = asyncHandler(async (req, res, next) => {
     })
 });
 
+// @ GET: /api/inventory/:inventoryId
 export const getSingleInventory = asyncHandler(async (req, res, next) => {
     const { inventoryId } = req.params;
 
@@ -27,7 +28,7 @@ export const getSingleInventory = asyncHandler(async (req, res, next) => {
     }
 
     const inventory = await Inventory.findById(inventoryId).select("-__v");
-    if (inventory.length === 0) {
+    if (!inventory) {
         return next(createError(`No inventory found in this id: ${inventoryId}`, 404));
     }
 
@@ -39,52 +40,7 @@ export const getSingleInventory = asyncHandler(async (req, res, next) => {
     });
 });
 
-// export const addInventory = asyncHandler(async (req, res, next) => {
-//     let { supplierId, productId, supplierName, productName, category, quantity } = req.body;
-
-//     if (!supplierId || !productId || !supplierName || !productName || !category || !quantity) {
-//         return next(createError("All fields are required", 400));
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(productId)) {
-//         return next(createError("Invalid Supplier or Product ID", 400));
-//     }
-
-//     supplierName = supplierName.trim().toLowerCase();
-//     productName = productName.trim().toLowerCase();
-//     category = category.trim().toLowerCase();
-
-//     const result = verifyData({ name: supplierName, name: productName, name: category });
-//     if (!result.success) {
-//         return next(createError(result.message, 400));
-//     }
-
-//     const newQuantity = parseInt(quantity);
-//     if (isNaN(newQuantity)) {
-//         return next(createError("Quantity Must be a number", 400));
-//     }
-
-//     let getSupplier = await Suppliers.findById(supplierId);
-//     if (!getSupplier) {
-//         return next(createError(`Supplier not found in this ID : ${supplierId}`, 404));
-//     }
-
-//     const productExist = getSupplier.products.some(product => product._id.toString() === productId);
-//     if (!productExist) {
-//         return next(createError(`Product not found in supplier's product list`, 404));
-//     }
-
-//     const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, quantity: newQuantity });
-//     await newInventory.save();
-
-//     res.status(201).json({
-//         message: "Inventory added successfully",
-//         success: true,
-//         statusCode: 201,
-//         Inventory: newInventory,
-//     });
-// });
-
+// @ POST: /api/inventory
 export const addInventory = asyncHandler(async (req, res, next) => {
     const { supplierId, productId, quantity } = req.body;
 
@@ -97,7 +53,7 @@ export const addInventory = asyncHandler(async (req, res, next) => {
     }
 
     const checkInventory = await Inventory.find({ supplierId, productId });
-    if(checkInventory.length > 0) {
+    if (checkInventory.length > 0) {
         return next(createError("Inventory exist in the supplier and the product", 400));
     }
 
@@ -113,7 +69,7 @@ export const addInventory = asyncHandler(async (req, res, next) => {
 
     const supplierName = getSupplier.name;
 
-    const productExist = getSupplier.products.find(product => product._id.toString() === productId); 
+    const productExist = getSupplier.products.find(product => product._id.toString() === productId);
     if (!productExist) {
         return next(createError(`Product not found in supplier's product list`, 404));
     }
@@ -132,6 +88,7 @@ export const addInventory = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ PATCH: /api/inventory/:inventoryId
 export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
     const { inventoryId } = req.params;
     const { quantity } = req.body;
@@ -162,5 +119,25 @@ export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
         success: true,
         statusCode: 200,
         inventory,
+    });
+});
+
+// @ DELETE: /api/inventory/:inventoryId
+export const deleteInventory = asyncHandler(async (req, res, next) => {
+    const { inventoryId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(inventoryId)) {
+        return next(createError(`Invalid Inventory ID: ${inventoryId}`, 400));
+    }
+
+    const deleteInventory = await Inventory.findByIdAndDelete(inventoryId);
+    if (!deleteInventory) {
+        return next(createError(`No Inventory found in this ID: ${inventoryId}`, 404));
+    }
+
+    res.status(200).json({
+        message: "Inventory deleted successfully",
+        success: true,
+        statusCode: 200,
     });
 });

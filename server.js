@@ -1,6 +1,5 @@
 import "dotenv/config.js";
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
 import { generalLimiter, authLimiter } from "./src/utils/rateLimiter.js";
 import path from "path";
@@ -34,8 +33,8 @@ const __dirname = path.resolve();
     app.use(generalLimiter);
     app.use(appLogger);
 
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
     app.use(express.static(path.join(__dirname, "public")));
   
     app.use("/", healthRoute);
