@@ -29,6 +29,11 @@ const inventorySchema = mongoose.Schema(
             required: true,
             min: 0
         },
+        threshold: {
+            type: Number,
+            required: true,
+            default: 50,
+        },
         status: {
             type: String,
             enum: ["in_stock", "low_stock", "out_of_stock"],
@@ -43,7 +48,7 @@ const inventorySchema = mongoose.Schema(
 inventorySchema.pre("save", function (next) {
     if (this.quantity === 0) {
         this.status = "out_of_stock";
-    } else if (this.quantity <= 50) {
+    } else if (this.quantity <= this.threshold) {
         this.status = "low_stock";
     } else {
         this.status = "in_stock";

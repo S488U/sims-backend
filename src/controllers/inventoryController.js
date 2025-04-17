@@ -40,11 +40,26 @@ export const getSingleInventory = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ GET: /api/inventory/customer
+export const getInventoryByCustomer = asyncHandler(async (req, res, next) => {
+    const inventory = await Inventory.find().select("-__v -productId -supplierId -supplierName");
+    if (inventory.length === 0) {
+        return res.status(200).json({ message: "Inventory is empty", success: true, statusCode: 200 });
+    }
+
+    res.status(200).json({
+        message: `In inventory ${inventory.length} were found`,
+        success: true,
+        statusCode: 200,
+        inventory,
+    })
+});
+
 // @ POST: /api/inventory
 export const addInventory = asyncHandler(async (req, res, next) => {
-    const { supplierId, productId, quantity } = req.body;
+    const { supplierId, productId, threshold, quantity } = req.body;
 
-    if (!supplierId || !productId || !quantity) {
+    if (!supplierId || !productId || !threshold || !quantity) {
         return next(createError("All fields are required", 400));
     }
 
@@ -52,9 +67,9 @@ export const addInventory = asyncHandler(async (req, res, next) => {
         return next(createError("Invalid Supplier or Product ID", 400));
     }
 
-    const checkInventory = await Inventory.find({ supplierId, productId });
-    if (checkInventory.length > 0) {
-        return next(createError("Inventory exist in the supplier and the product", 400));
+    const parsedThreshold = parseInt(threshold);
+    if (isNaN(parsedThreshold)) {
+        return next(createError("Threshold Must be a number", 400));
     }
 
     const newQuantity = parseInt(quantity);
@@ -62,36 +77,50 @@ export const addInventory = asyncHandler(async (req, res, next) => {
         return next(createError("Quantity Must be a number", 400));
     }
 
-    let getSupplier = await Suppliers.findById(supplierId);
+    const getSupplier = await Suppliers.findById(supplierId);
     if (!getSupplier) {
         return next(createError(`Supplier not found in this ID : ${supplierId}`, 404));
     }
-
-    const supplierName = getSupplier.name;
 
     const productExist = getSupplier.products.find(product => product._id.toString() === productId);
     if (!productExist) {
         return next(createError(`Product not found in supplier's product list`, 404));
     }
 
+    const supplierName = getSupplier.name;
     const productName = productExist.name;
     const category = productExist.category;
+    const productPrice = productExist.pricePerItem;
 
-    const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, quantity: newQuantity });
-    await newInventory.save();
+    const existingInventory = await Inventory.findOne({ supplierId, productId });
+
+    let inventory;
+
+    if (existingInventory) {
+        existingInventory.quantity += newQuantity;
+        existingInventory.threshold = parsedThreshold;
+        await existingInventory.save();
+        console.log("Updated Quantity");
+        inventory = existingInventory;
+    } else {
+        const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, productPrice, quantity: newQuantity, threshold: parsedThreshold });
+        await newInventory.save();
+        console.log("Raw Quantity");
+        inventory = newInventory;
+    }
 
     res.status(201).json({
         message: "Inventory added successfully",
         success: true,
         statusCode: 201,
-        Inventory: newInventory,
+        inventory
     });
 });
 
 // @ PATCH: /api/inventory/:inventoryId
 export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
     const { inventoryId } = req.params;
-    const { quantity } = req.body;
+    const { quantity, threshold } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(inventoryId)) {
         return next(createError("Invalid Inventory ID", 400));
@@ -99,6 +128,11 @@ export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
 
     if (quantity === undefined || quantity === null || quantity === "") {
         return next(createError("Quantity is required", 400));
+    }
+
+    const parsedThreshold = parseInt(threshold);
+    if (isNaN(newQuantity)) {
+        return next(createError("Quantity must be a valid number", 400));
     }
 
     const newQuantity = parseInt(quantity);
@@ -112,6 +146,10 @@ export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
     }
 
     inventory.quantity = newQuantity;
+    if(threshold) {
+        inventory.threshold = parsedThreshold;
+    }
+    
     await inventory.save();
 
     res.status(200).json({
