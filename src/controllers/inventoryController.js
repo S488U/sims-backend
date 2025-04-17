@@ -100,12 +100,12 @@ export const addInventory = asyncHandler(async (req, res, next) => {
         existingInventory.quantity += newQuantity;
         existingInventory.threshold = parsedThreshold;
         await existingInventory.save();
-        console.log("Updated Quantity");
+        
         inventory = existingInventory;
     } else {
         const newInventory = new Inventory({ supplierId, supplierName, productId, productName, category, productPrice, quantity: newQuantity, threshold: parsedThreshold });
         await newInventory.save();
-        console.log("Raw Quantity");
+        
         inventory = newInventory;
     }
 
@@ -149,7 +149,7 @@ export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
     if(threshold) {
         inventory.threshold = parsedThreshold;
     }
-    
+
     await inventory.save();
 
     res.status(200).json({

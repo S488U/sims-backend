@@ -39,6 +39,7 @@ export const getSingleSupplier = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ POST: /api/supplier/
 export const addSupplier = asyncHandler(async (req, res, next) => {
     let { name, email, phone, address, products } = req.body;
 
@@ -61,11 +62,11 @@ export const addSupplier = asyncHandler(async (req, res, next) => {
     const duplicateCheckSet = new Set();
 
     for (const [index, item] of products.entries()) {
-
         const priceItem = parseFloat(item.pricePerItem);
         item.pricePerItem = priceItem;
+
         if (isNaN(item.pricePerItem)) {
-            return next(createError(`Product index: ${index}: PricePerItem must be a number`, 400))
+            return next(createError(`Product index: ${index}: PricePerItem must be a number`, 400));
         }
 
         item.name = item.name.trim().toLowerCase();
@@ -73,15 +74,20 @@ export const addSupplier = asyncHandler(async (req, res, next) => {
 
         const key = `${item.name}|${item.category}`;
         if (duplicateCheckSet.has(key)) {
-            return next(createError(`Product index ${index}: Duplicate name and category`, 400))
+            return next(createError(`Product index ${index}: Duplicate name and category`, 400));
         }
         duplicateCheckSet.add(key);
 
-        const result = verifyData(item);
-        if (!result.success) return next(createError(`Product Index ${index}: ${result.message}`, 400));
+        const result = verifyData({
+            productName: item.name, 
+            category: item.category,
+            pricePerItem: item.pricePerItem,
+        });
+
+        if (!result.success) {
+            return next(createError(`Product Index ${index}: ${result.message}`, 400));
+        }
     }
-
-
 
     let supplier = await Suppliers.findOne({ email });
     if (supplier) {
@@ -101,6 +107,7 @@ export const addSupplier = asyncHandler(async (req, res, next) => {
         supplier,
     });
 });
+
 
 export const updateAllSupplier = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -144,7 +151,7 @@ export const updateAllSupplier = asyncHandler(async (req, res, next) => {
         }
         duplicateCheckSet.add(key);
 
-        const result = verifyData(item);
+        const result = verifyData({ productName: item.name, category: item.category, pricePerItem: item.pricePerItem });
         if (!result.success) return next(createError(`Product Index ${index}: ${result.message}`, 400));
     }
 
@@ -208,7 +215,7 @@ export const updateSupplierDetails = asyncHandler(async (req, res, next) => {
         }
 
         const duplicateCheckSet = new Set();
-        
+
         for (const [index, item] of products.entries()) {
             if (item.productId) {
                 if (!mongoose.Types.ObjectId.isValid(item.productId)) {
@@ -235,7 +242,12 @@ export const updateSupplierDetails = asyncHandler(async (req, res, next) => {
                 }
                 duplicateCheckSet.add(key);
 
-                const result = verifyData(item);
+                const result = verifyData({
+                    productName: item.name,
+                    category: item.category,
+                    pricePerItem: item.pricePerItem,
+                });
+
                 if (!result.success) {
                     return next(createError(`Product Index ${index}: ${result.message}`, 400));
                 }
@@ -244,16 +256,27 @@ export const updateSupplierDetails = asyncHandler(async (req, res, next) => {
                 existingProduct.category = item.category;
                 existingProduct.pricePerItem = price;
             } else {
-                const newProduct = { 
+                const newProduct = {
                     name: processHandler(item.name, "Name", { lowercase: true }),
                     category: processHandler(item.category, "Category", { lowercase: true }),
                     pricePerItem: parseFloat(item.pricePerItem),
                 };
 
-                const result = verifyData(newProduct);
+                const result = verifyData({
+                    productName: newProduct.name,
+                    category: newProduct.category,
+                    pricePerItem: newProduct.pricePerItem,
+                });
+
                 if (!result.success) {
                     return next(createError(`New Product index ${index}: ${result.message}`, 400));
                 }
+
+                const key = `${newProduct.name}|${newProduct.category}`;
+                if (duplicateCheckSet.has(key)) {
+                    return next(createError(`New Product index ${index}: Duplicate name + category`, 400));
+                }
+                duplicateCheckSet.add(key);
 
                 getSupplier.products.push(newProduct);
             }
@@ -294,6 +317,7 @@ export const updateSupplierDetails = asyncHandler(async (req, res, next) => {
 });
 
 
+
 export const updateSupplierColumn = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const { name, phone, email, address } = req.body;
@@ -306,7 +330,7 @@ export const updateSupplierColumn = asyncHandler(async (req, res, next) => {
 
     if (Object.keys(updatedFields).length === 0) return next(createError("No data provided", 400));
 
-    const validationResult = verifyData(updatedFields);
+    const validationResult = verifyData({ productName: name, phone, email, address });
     if (!validationResult.success) return next(createError(validationResult.message, 403));
 
     const supplier = await Suppliers.findByIdAndUpdate(id,

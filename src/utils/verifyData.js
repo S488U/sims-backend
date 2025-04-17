@@ -32,7 +32,11 @@ export const verifyData = (data) => {
     price: {
       regex: /^[0-9]+(\.[0-9]{1,2})?$/,
       message: "Price must be a number with up to 2 decimal places",
-    }
+    },
+    productName: {
+      regex: /^[a-zA-Z0-9 ._()\-/\s]+$/,
+      message: "Only letters, numbers, space, dot (.), slash (/), underscore (_), hyphen (-), and parentheses () are allowed in the product name",
+    }        
   };
 
   if (Object.keys(data).length === 0) {

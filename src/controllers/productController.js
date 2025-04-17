@@ -105,7 +105,7 @@ export const addProducts = asyncHandler(async (req, res, next) => {
             return next(createError("PricePerItem must be a number", 400));
         }
 
-        const verificationResult = verifyData({ name, pricePerItem, name: category });
+        const verificationResult = verifyData({ productName: name, pricePerItem, name: category });
         if (!verificationResult.success) {
             return next(createError(verificationResult.message, 400));
         }
@@ -168,7 +168,7 @@ export const updateAllProducts = asyncHandler(async (req, res, next) => {
 
         console.log(product)
 
-        const verificationResult = verifyData({ name: product.name, pricePerItem: product.pricePerItem, name: product.category });
+        const verificationResult = verifyData({ productName: product.name, pricePerItem: product.pricePerItem, name: product.category });
         if (!verificationResult.success) {
             return next(createError(verificationResult.message, 400));
         }
