@@ -20,6 +20,11 @@ const inventorySchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        productPrice: {
+            type: Number,
+            required: true,
+            default: 0
+        },
         category: {
             type: String,
             required: true,
