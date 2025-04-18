@@ -131,7 +131,7 @@ export const updateInventoryColumn = asyncHandler(async (req, res, next) => {
     }
 
     const parsedThreshold = parseInt(threshold);
-    if (isNaN(newQuantity)) {
+    if (isNaN(parsedThreshold)) {
         return next(createError("Quantity must be a valid number", 400));
     }
 
