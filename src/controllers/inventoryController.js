@@ -42,7 +42,7 @@ export const getSingleInventory = asyncHandler(async (req, res, next) => {
 
 // @ GET: /api/inventory/customer
 export const getInventoryByCustomer = asyncHandler(async (req, res, next) => {
-    const inventory = await Inventory.find().select("-__v -productId -supplierId -supplierName");
+    const inventory = await Inventory.find().select("-__v -productId -supplierId");
     if (inventory.length === 0) {
         return res.status(200).json({ message: "Inventory is empty", success: true, statusCode: 200 });
     }
