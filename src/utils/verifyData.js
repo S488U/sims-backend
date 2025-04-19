@@ -36,6 +36,10 @@ export const verifyData = (data) => {
     productName: {
       regex: /^[a-zA-Z0-9 ._()\-/\s]+$/,
       message: "Only letters, numbers, space, dot (.), slash (/), underscore (_), hyphen (-), and parentheses () are allowed in the product name",
+    },
+    feedback: {
+      regex: /^[a-zA-Z0-9\s.,!?'"()\-_:;@#]+$/,
+      message: "letters, digits, basic punctuation, spaces are allowed in the feedback message",
     }        
   };
 
