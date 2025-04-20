@@ -3,7 +3,7 @@ import { getOrders, placeOrder, updateOrderStatus, deleteOrder } from '../contro
 
 const router = express.Router();
 
-router.get("/order", getOrders);
+router.get("", getOrders);
 router.post("/", placeOrder);
 router.patch("/:orderId", updateOrderStatus);
 router.delete("/:orderId", deleteOrder);
