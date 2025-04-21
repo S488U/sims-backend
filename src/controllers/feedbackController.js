@@ -4,12 +4,64 @@ import mongoose from "mongoose";
 import Feedback from "../models/feedback/feedbackModel.js";
 import { verifyData } from "../utils/verifyData.js";
 
-export const getFeedback = asyncHandler(async (req, res, next) => {
+
+// @ GET /api/feedback : Feedback for Admin. Don't have any access for Customer or others.
+export const getAllFeedback = asyncHandler(async (req, res, next) => {
+    const feedbacks = await Feedback.find().select("-__v");
+
+    if (!feedbacks) {
+        return next(createError("No feedbacks found", 404));
+    }
+
     res.status(200).json({
-        message: "On work",
-    })
+        message: `${feedbacks.length} feedbacks found`,
+        success: true,
+        statusCode: 200,
+        feedbacks,
+    });
 });
 
+// @ GET /api/feedback?customerId=<id>&staffId=<id> 
+// You can give two query or one single query. Both will work.
+export const getFeedbacksForUsers = asyncHandler(async (req, res, next) => {
+    const { staffId, customerId } = req.query;
+
+    let query = {};
+    if (customerId !== undefined || customerId !== "") {
+        if (customerId) {
+            if (!mongoose.Types.ObjectId.isValid(customerId)) {
+                return next(createError("Invalid Customer Id", 400));
+            }
+            query.customerId = customerId;
+        }
+    }
+    if (staffId !== undefined || staffId !== "") {
+        if (staffId) {
+            if (!mongoose.Types.ObjectId.isValid(staffId)) {
+                return next(createError("Invalid Staff Id", 400));
+            }
+            query.staffId = staffId;
+        }
+    }
+
+    if (Object.keys(query).length === 0) {
+        return next(createError("Customer ID or Staff Id is needed", 400));
+    };
+
+    const feedbacks = await Feedback.find(query).select("-__v");
+    if (!feedbacks || feedbacks.length === 0) {
+        return next(createError("No feedbacks found", 404));
+    }
+
+    res.status(200).json({
+        message: `${feedbacks.length} feedbacks found`,
+        success: true,
+        statusCode: 200,
+        feedbacks,
+    });
+});
+
+// @ POST /api/feedback : Add feedbacks
 export const addFeedback = asyncHandler(async (req, res, next) => {
     const { customerId, staffId, senderType, message } = req.body;
 
@@ -51,13 +103,33 @@ export const addFeedback = asyncHandler(async (req, res, next) => {
 
     query.message = message.trim();
 
-    const feedback = Feedback(query);
-    await feedback.save();
+    const feedbacks = Feedback(query);
+    await feedbacks.save();
 
     res.status(201).json({
         message: "Feedback added successfully",
         success: true,
         statusCode: 201,
-        feedback,
+        feedbacks,
+    });
+});
+
+// @ DELETE /api/feedback : Delete feedbacks
+export const deleteFeedback = asyncHandler(async (req, res, next) => {
+    const { feedbackId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
+        return next(createError("Invalid feedback ID", 400));
+    }
+
+    const feedback = await Feedback.findByIdAndDelete(feedbackId);
+    if (!feedback) {
+        return next(createError("No feedback found", 404));
+    }
+
+    res.status(200).json({
+        message: "Feedback deleted successfully",
+        success: true,
+        statusCode: 200
     });
 });

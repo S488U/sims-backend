@@ -5,6 +5,10 @@ import mongoose from "mongoose";
 import Order from "../models/order/orderModel.js";
 import Inventory from "../models/inventory/inventoryModel.js";
 
+// @ GET /api/order/ : Get all orders
+// @ GET /api/order?customerId=<id> : Get all orders by a specific customer
+// @ GET /api/order?orderId=<id> : Get a specific order
+// @ GET /api/order?customerId=<id>orderId=<id> : Get a specific order by customer
 export const getOrders = asyncHandler(async (req, res, next) => {
     const { customerId, orderId } = req.query;
 
@@ -48,6 +52,7 @@ export const getOrders = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ POST /api/order/
 export const placeOrder = asyncHandler(async (req, res, next) => {
     const { customerId, totalAmount, orderProducts } = req.body;
 
@@ -126,6 +131,7 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ PATCH /api/order/:orderId 
 export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -161,6 +167,7 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ DELETE /api/order/:orderId
 export const deleteOrder = asyncHandler(async (req, res, next) => {
     const { orderId } = req.params;
 
@@ -180,7 +187,7 @@ export const deleteOrder = asyncHandler(async (req, res, next) => {
     for (const item of order.orderProducts) {
         const inventoryItem = await Inventory.findById(item.inventoryId);
         if (inventoryItem) {
-            inventoryItem.quantity += item.quantity; // using your field
+            inventoryItem.quantity += item.quantity; 
             await inventoryItem.save();
         }
     }

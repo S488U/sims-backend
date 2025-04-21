@@ -1,9 +1,11 @@
 import express from "express";
-import { getFeedback, addFeedback } from "../controllers/feedbackController.js";
+import { getAllFeedback, getFeedbacksForUsers, addFeedback, deleteFeedback } from "../controllers/feedbackController.js";
 
 const router = express.Router();
 
-router.get("/", getFeedback);
+router.get("/", getAllFeedback);
+router.get("/user", getFeedbacksForUsers);
 router.post("/", addFeedback);
+router.delete("/:feedbackId", deleteFeedback);
 
 export default router;
