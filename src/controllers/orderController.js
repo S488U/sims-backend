@@ -156,6 +156,18 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
         return next(createError("Order not found", 404));
     }
 
+    if (lowerCaseStatus === "cancelled") {
+        const inventoryUpdates = order.orderProducts.map(async (item) => {
+            const inventoryItem = await Inventory.findById(item.inventoryId);
+            if (inventoryItem) {
+                inventoryItem.quantity += item.quantity;
+                return inventoryItem.save();
+            }
+        });
+    
+        await Promise.all(inventoryUpdates);
+    }
+
     order.status = lowerCaseStatus;
     await order.save();
 
@@ -187,7 +199,7 @@ export const deleteOrder = asyncHandler(async (req, res, next) => {
     for (const item of order.orderProducts) {
         const inventoryItem = await Inventory.findById(item.inventoryId);
         if (inventoryItem) {
-            inventoryItem.quantity += item.quantity; 
+            inventoryItem.quantity += item.quantity;
             await inventoryItem.save();
         }
     }
