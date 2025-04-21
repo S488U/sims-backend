@@ -192,19 +192,7 @@ export const deleteOrder = asyncHandler(async (req, res, next) => {
         return next(createError("Order not found", 404));
     }
 
-    if (order.status !== "pending") {
-        return next(createError("Only pending orders can be deleted", 400));
-    }
-
-    for (const item of order.orderProducts) {
-        const inventoryItem = await Inventory.findById(item.inventoryId);
-        if (inventoryItem) {
-            inventoryItem.quantity += item.quantity;
-            await inventoryItem.save();
-        }
-    }
-
-    await Order.findByIdAndDelete(orderId);
+    await Order.deleteOne(orderId);
 
     res.status(200).json({
         message: "Order deleted successfully",
