@@ -78,6 +78,7 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
         return next(createError(`TotalAmount: ${result.message}`, 400));
     }
 
+    let totalCalculatedAmount = 0;
     for (const [index, item] of orderProducts.entries()) {
         if (item.inventoryId === undefined) {
             return next(createError(`Order Product index ${index}: inventoryId must have a value`, 400));
@@ -100,6 +101,8 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
         }
 
         item.price = parsedPrice;
+        totalCalculatedAmount += (parsedPrice * parsedQuantity); 
+
         item.category = item.category.trim().toLowerCase();
 
         const result = verifyData({ price: item.price, categoryName: item.category });
@@ -120,7 +123,7 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
         await inventoryItem.save();
     }
 
-    const placeOrder = new Order({ customerId, totalAmount, orderProducts });
+    const placeOrder = new Order({ customerId, totalAmount: totalCalculatedAmount, orderProducts });
     await placeOrder.save();
 
     res.status(201).json({
