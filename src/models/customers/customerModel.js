@@ -24,6 +24,11 @@ const customersSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    paymentPreference: {
+      type: String,
+      enum: ["weekly", "monthly"],
+      required: true
+    }
   },
   {
     timestamps: true,

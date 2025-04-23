@@ -63,11 +63,16 @@ export const getCustomerById = asyncHandler(async (req, res, next) => {
 
 // @ Customer Account Creation
 export const createCustomer = asyncHandler(async (req, res, next) => {
-  const { name, email, phone, address, password } = req.body;
+  const { name, email, phone, address, password, paymentPreference } = req.body;
 
-  if (!name || !email || !phone || !address || !password) {
+  if (!name || !email || !phone || !address || !password || !paymentPreference ) {
     return next(createError("All fields are required", 403));
   }
+
+  const allowedPreferences = ["weekly", "monthly"];
+  if (!allowedPreferences.includes(paymentPreference?.toLowerCase())) {
+    return next(createError("Invalid payment preference. Choose either 'weekly' or 'monthly'", 400));
+  }  
 
   const validationResult = verifyData({ name, email, phone, address, password });
 
@@ -82,7 +87,7 @@ export const createCustomer = asyncHandler(async (req, res, next) => {
 
   const hashedPassword = await hashPassword(password);
 
-  customers = new Customers({ name, email, phone, address, password: hashedPassword });
+  customers = new Customers({ name, email, phone, address, password: hashedPassword, paymentPreference });
   await customers.save();
 
   res.status(201).json({

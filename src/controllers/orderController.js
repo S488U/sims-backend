@@ -195,7 +195,7 @@ export const deleteOrder = asyncHandler(async (req, res, next) => {
         return next(createError("Order not found", 404));
     }
 
-    await Order.deleteOne(orderId);
+    await Order.deleteOne({ _id: orderId });
 
     res.status(200).json({
         message: "Order deleted successfully",

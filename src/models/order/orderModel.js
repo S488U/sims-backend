@@ -36,6 +36,11 @@ const orderSchema = new mongoose.Schema({
         enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
         default: "pending",
     },
+    invoiceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Invoice",
+        default: null,
+    }
 }, {
     timestamps: true
 });
