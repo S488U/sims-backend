@@ -54,28 +54,18 @@ export const getOrders = asyncHandler(async (req, res, next) => {
 
 // @ POST /api/order/
 export const placeOrder = asyncHandler(async (req, res, next) => {
-    const { customerId, totalAmount, orderProducts } = req.body;
+    const { customerId, orderProducts } = req.body;
 
     if (!Array.isArray(orderProducts) || orderProducts.length === 0) {
         return next(createError("orderProducts need to be an array with values", 400));
     }
 
-    if (!customerId || !totalAmount) {
+    if (!customerId) {
         return next(createError("All fields are required", 400));
     }
 
     if (!mongoose.Types.ObjectId.isValid(customerId)) {
         return next(createError("Invalid customer Id or Inventory Id", 400));
-    }
-
-    const parsedTotal = parseFloat(totalAmount);
-    if (isNaN(parsedTotal)) {
-        return next(createError(`Total Amount: ${totalAmount} needs to be a number`, 400));
-    }
-
-    const result = verifyData({ price: totalAmount });
-    if (!result.success) {
-        return next(createError(`TotalAmount: ${result.message}`, 400));
     }
 
     let totalCalculatedAmount = 0;
@@ -95,21 +85,7 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
 
         item.quantity = parsedQuantity;
 
-        const parsedPrice = parseFloat(item.price);
-        if (isNaN(parsedPrice)) {
-            return next(createError(`Order Product index ${index}: Price must be a number`, 400));
-        }
-
-        item.price = parsedPrice;
-        totalCalculatedAmount += (parsedPrice * parsedQuantity); 
-
-        item.category = item.category.trim().toLowerCase();
-
-        const result = verifyData({ price: item.price, categoryName: item.category });
-        if (!result.success) {
-            return next(createError(`Order Product index ${index}: ${result.message}`, 400));
-        }
-
+        console.log(item.inventoryId);
         const inventoryItem = await Inventory.findById(item.inventoryId);
         if (!inventoryItem) {
             return next(createError(`Order Product index ${index}: Inventory item not found`, 404));
@@ -118,6 +94,12 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
         if (inventoryItem.quantity < item.quantity) {
             return next(createError(`Order Product index ${index}: Insufficient stock for product ${item.inventoryId}`, 400));
         }
+
+        item.price = inventoryItem.productPrice;
+        totalCalculatedAmount += (item.price * parsedQuantity); 
+
+        item.category = inventoryItem.category;
+        item.name = inventoryItem.productName; 
 
         inventoryItem.quantity -= item.quantity;
         await inventoryItem.save();
