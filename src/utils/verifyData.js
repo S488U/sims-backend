@@ -40,7 +40,15 @@ export const verifyData = (data) => {
     feedback: {
       regex: /^[a-zA-Z0-9\s.,!?'"()\-_:;@#]+$/,
       message: "letters, digits, basic punctuation, spaces are allowed in the feedback message",
-    }        
+    },
+    transactionId: {
+      regex: /^[A-Za-z0-9.-]{8,36}$/,
+      message: "Transaction Id contains 8–36 characters long, letters, numbers, dots, and hyphens.",
+    },
+    transactionDate: {
+      regex: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/,
+      message: "Invalid date format. Must be ISO 8601.",
+    }
   };
 
   if (Object.keys(data).length === 0) {

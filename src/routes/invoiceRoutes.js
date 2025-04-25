@@ -1,12 +1,14 @@
 import express from "express";
-import { getAllInvoice, getInvoiceByCustomer, getSingleInvoice,  generateInvoice, approveInvoice } from "../controllers/invoiceController.js";
+import { getAllInvoice, getInvoiceByCustomer, getSingleInvoice, generateInvoice, approveInvoice, updatePaymentDetails, updateStatus } from "../controllers/invoiceController.js";
 
 const router = express.Router();
 
-router.get("/", getAllInvoice)
+router.get("/draft", getInvoiceByCustomer);
+router.get("/", getAllInvoice);
 router.get("/:invoiceId", getSingleInvoice);
-router.get("", getInvoiceByCustomer)
 router.post("/", generateInvoice);
-router.patch("/:invoiceId", approveInvoice)
+router.patch("/:invoiceId", approveInvoice);
+router.patch("/payment/:invoiceId", updatePaymentDetails);
+router.patch("/payment/status/:invoiceId", updateStatus);
 
 export default router;

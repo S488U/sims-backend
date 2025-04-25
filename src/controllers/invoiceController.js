@@ -7,6 +7,7 @@ import timezone from "dayjs/plugin/timezone.js";
 import Invoice from "../models/invoice/invoiceModel.js";
 import Customers from "../models/customers/customerModel.js";
 import Order from "../models/order/orderModel.js";
+import { verifyData } from "../utils/verifyData.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -68,9 +69,11 @@ export const getSingleInvoice = asyncHandler(async (req, res, next) => {
 })
 
 export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
-    const { customerId, invoiceId } = req.query;
+    const { customerId, invoiceId, draft} = req.query;
 
     let query = {};
+    console.log(query);
+    
     if (customerId !== undefined) {
         if (!mongoose.Types.ObjectId.isValid(customerId)) {
             return next(createError("Invalid Customer ID", 400));
@@ -85,6 +88,12 @@ export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
         query._id = invoiceId;
     }
 
+    if (draft !== undefined) {
+            query.draft = 'false'; 
+    }
+    
+    console.log(query);
+
     const invoice = await Invoice.find(query).select("-__v");
     if (!invoice || invoice.length === 0) {
         return next(createError("No invoice Found in this customer", 404));
@@ -95,7 +104,7 @@ export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
         statusCode: 200,
         invoice
     });
-})
+});
 
 export const generateInvoice = asyncHandler(async (req, res, next) => {
     const { customers } = req.body;
@@ -103,6 +112,9 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
     if (!Array.isArray(customers) || customers.length === 0) {
         return next(createError("Customers need to be an array with valid IDs", 400));
     }
+
+    let invoiceCreated = false;
+    let noOfInvoice = 0;
 
     for (const customerId of customers) {
         if (!mongoose.Types.ObjectId.isValid(customerId)) {
@@ -127,7 +139,6 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
         if (!orders.length) continue;
 
         const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-
         const dueDate = calculateDueDate(preference);
 
         const invoice = new Invoice({
@@ -145,10 +156,21 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
             { _id: { $in: orders.map(o => o._id) } },
             { invoiceId: invoice._id }
         );
+
+        invoiceCreated = true;
+        noOfInvoice++;
+    }
+
+    if (!invoiceCreated) {
+        return res.status(200).json({
+            message: "No new invoices generated. No matching delivered orders found.",
+            success: false,
+            statusCode: 200
+        });
     }
 
     res.status(201).json({
-        message: "Invoices generated successfully based on IST",
+        message: `${noOfInvoice} Invoice generated successfully based on IST`,
         success: true,
         statusCode: 201
     });
@@ -156,9 +178,9 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
 
 export const approveInvoice = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
-    const { draftInvoice } = req.body;
+    const { draft } = req.body;
 
-    if(invoiceId === undefined) {
+    if (invoiceId === undefined) {
         return next(createError("No invoice Id", 400));
     }
 
@@ -166,18 +188,18 @@ export const approveInvoice = asyncHandler(async (req, res, next) => {
         return next(createError("Invalid Invoice ID", 400));
     }
 
-    if(!draftInvoice == undefined) {
-        return next(createError("No draftInvoice value", 400));
+    if (draft === undefined) {
+        return next(createError("No draft value", 400));
     }
 
-    let status = draftInvoice === false ? "pending" : "draft";
+    let status = draft === false ? "pending" : "draft";
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice || invoice.length === 0) {
         return next(createError("No invoice Found in this customer", 404));
     }
 
-    invoice.draft = draftInvoice;
+    invoice.draft = draft;
     invoice.status = status;
     await invoice.save();
 
@@ -188,3 +210,88 @@ export const approveInvoice = asyncHandler(async (req, res, next) => {
         invoice
     })
 })
+
+export const updatePaymentDetails = asyncHandler(async (req, res, next) => {
+    const { invoiceId } = req.params;
+    const { method, transId, transDate } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+        return next(createError("Invalid invoiceId", 400));
+    }
+
+    if (method === undefined || transDate === undefined) {
+        return next(createError("All field are required: [method, transDate]"));
+    }
+
+    let invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+        return next(createError(`No invoice found in this ID ${invoiceId}`, 404));
+    }
+
+    if (invoice.method !== null) return next(createError(`This Invoice cannot be modifies again. ID ${invoiceId}. Error: Payment Already updated`, 400));
+
+    const validateMethod = new Set(["bank", "card", "upi", "cash"]);
+    if (!validateMethod.has(method.trim())) {
+        return next(createError("Transaction Method only allows 'bank, cash, upi, card'"));
+    }
+
+    let query = {};
+    if (transDate) query.transactionDate = transDate;
+    if (transId) query.transactionId = transId;
+
+    const results = await verifyData(query);
+    if (!results.success) return next(createError(results.message, 400));
+
+    invoice.transactionDate = query.transactionDate;
+    invoice.method = method;
+
+    if (method !== "cash") {
+        if (invoice.transactionId === undefined) return next(createError("Transaction ID is undefined", 400))
+        invoice.transactionId = query.transactionId;
+    }
+
+    await invoice.save();
+
+    res.status(200).json({
+        message: "Invoice Payment Updated successfully",
+        success: true,
+        statusCode: 200,
+        invoice
+    });
+});
+
+export const updateStatus = asyncHandler(async (req, res, next) => {
+    const { invoiceId } = req.params;
+    let status = req.body.status;
+
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+        return next(createError("Invalid invoice ID", 400));
+    }
+
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+        return next(createError(`No invoice found in this ID ${invoiceId}`, 404));
+    }
+
+    if (invoice.method === null) {
+        return next(createError("Invoice Payment method not need to be a null", 403));
+    }
+
+    if (status !== undefined) {
+        status = status.trim().toLowerCase();
+    }
+
+    if (status !== "paid") {
+        return next(createError("Status Only need to be 'paid'", 400));
+    }
+
+    invoice.status = status;
+    await invoice.save();
+
+    res.status(200).json({
+        message: "Invoice Status  Updated successfully",
+        success: true,
+        statusCode: 200,
+        invoice
+    });
+});
