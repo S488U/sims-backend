@@ -14,6 +14,7 @@ dayjs.extend(timezone);
 
 const IST_TIMEZONE = "Asia/Kolkata";
 
+// Logic for Generating Invoice by Date
 const getISTDateRange = (preference = "monthly") => {
     const now = dayjs().tz(IST_TIMEZONE);
 
@@ -29,11 +30,13 @@ const getISTDateRange = (preference = "monthly") => {
     };
 };
 
+// Logic for Calcuting Due Date for monthly and weekly Paying Customer
 const calculateDueDate = (preference) => {
     const dueDays = preference === "weekly" ? 4 : 7;
     return dayjs().tz(IST_TIMEZONE).add(dueDays, "day").utc().toDate();
 };
 
+// @ GET : Get All Invoices /api/invoice
 export const getAllInvoice = asyncHandler(async (req, res, next) => {
 
     const invoice = await Invoice.find().select("-__v");
@@ -50,6 +53,7 @@ export const getAllInvoice = asyncHandler(async (req, res, next) => {
     })
 });
 
+// @ GET : Get A Single Invoice /api/invoice/:invoiceId
 export const getSingleInvoice = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
 
@@ -68,6 +72,11 @@ export const getSingleInvoice = asyncHandler(async (req, res, next) => {
     });
 })
 
+// @ GET : Get Specific Invoice
+// /api/invoice/draft?customerId=<id>
+// /api/invoice/draft?customerId=<id>&invoiceId=<id>
+// /api/invoice/draft?invoiceId=<id>
+// /api/invoice/draft?customerId=<id>&draft=false
 export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
     const { customerId, invoiceId, draft} = req.query;
 
@@ -106,6 +115,7 @@ export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ POST : Generate Invoice for passed customers : /api/invoice/
 export const generateInvoice = asyncHandler(async (req, res, next) => {
     const { customers } = req.body;
 
@@ -176,6 +186,7 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ PATCH : Approve Invoice and Update status Pending : /api/invoice/:invoiceId
 export const approveInvoice = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
     const { draft } = req.body;
@@ -211,6 +222,7 @@ export const approveInvoice = asyncHandler(async (req, res, next) => {
     })
 })
 
+// @ PATCH : Update Payment Details : /api/invoice/payment/:invoiceId
 export const updatePaymentDetails = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
     const { method, transId, transDate } = req.body;
@@ -260,6 +272,7 @@ export const updatePaymentDetails = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @ PATCH : Update payment status : /api/invoice/payment/status/:invoiceId
 export const updateStatus = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
     let status = req.body.status;
