@@ -17,7 +17,7 @@ const invoiceSchema = mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["paid", "pending"],
+        enum: ["draft", "paid", "pending"],
         default: "pending",
         required: true,
     },

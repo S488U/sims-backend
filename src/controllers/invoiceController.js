@@ -135,7 +135,7 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
             orders: orders.map(order => order._id),
             amount: totalAmount,
             draft: true,
-            status: "pending",
+            status: "draft",
             dueDate
         });
 
@@ -167,8 +167,10 @@ export const approveInvoice = asyncHandler(async (req, res, next) => {
     }
 
     if(!draftInvoice == undefined) {
-        return next(createError("No drafrInvoice value", 400));
+        return next(createError("No draftInvoice value", 400));
     }
+
+    let status = draftInvoice === false ? "pending" : "draft";
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice || invoice.length === 0) {
@@ -176,6 +178,7 @@ export const approveInvoice = asyncHandler(async (req, res, next) => {
     }
 
     invoice.draft = draftInvoice;
+    invoice.status = status;
     await invoice.save();
 
     res.status(200).json({
