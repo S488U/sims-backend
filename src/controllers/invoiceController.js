@@ -100,8 +100,6 @@ export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
     if (draft !== undefined) {
             query.draft = 'false'; 
     }
-    
-    console.log(query);
 
     const invoice = await Invoice.find(query).select("-__v");
     if (!invoice || invoice.length === 0) {
