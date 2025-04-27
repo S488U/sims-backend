@@ -1,10 +1,11 @@
 import express from "express";
-import { createAdmin, adminLogin } from "../controllers/adminController.js";
+import { getAdmin, createAdmin, updateAdmin } from "../controllers/adminController.js";
 
 const router = express.Router();
 
+router.get("/", getAdmin);
 // Admin Account creation
 router.post("/", createAdmin);
-router.post("/login", adminLogin);
+router.patch("/", updateAdmin);
 
 export default router;
