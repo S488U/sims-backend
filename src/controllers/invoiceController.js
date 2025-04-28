@@ -78,11 +78,11 @@ export const getSingleInvoice = asyncHandler(async (req, res, next) => {
 // /api/invoice/draft?invoiceId=<id>
 // /api/invoice/draft?customerId=<id>&draft=false
 export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
-    const { customerId, invoiceId, draft} = req.query;
+    const { customerId, invoiceId, draft } = req.query;
 
     let query = {};
     console.log(query);
-    
+
     if (customerId !== undefined) {
         if (!mongoose.Types.ObjectId.isValid(customerId)) {
             return next(createError("Invalid Customer ID", 400));
@@ -98,7 +98,7 @@ export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
     }
 
     if (draft !== undefined) {
-            query.draft = 'false'; 
+        query.draft = 'false';
     }
 
     const invoice = await Invoice.find(query).select("-__v");
@@ -305,4 +305,20 @@ export const updateStatus = asyncHandler(async (req, res, next) => {
         statusCode: 200,
         invoice
     });
+});
+
+// @ DELETE : Delete Invoice : /api/delete
+export const deleteInvoice = asyncHandler(async (req, res, next) => {
+    const { invoiceId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+        return next(createError("No valid Id", 400));
+    }
+
+    const invoice = await Invoice.findByIdAndDelete(invoiceId);
+    if (!invoice) {
+        return next(createError(`No Id : ${invoiceId} found in this database`, 404));
+    }
+
+    res.status(204).send();
 });
