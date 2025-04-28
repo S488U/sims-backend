@@ -7,7 +7,9 @@ import { decrypt } from "dotenv";
 
 // @ GET: /api/admin To view admin for debugging. Production Time it will be removed
 export const getAdmin = asyncHandler(async (req, res, next) => {
-  const admin = await Admin.findOne();
+  const timeTaken = Date.now() - res.locals.startTime;
+
+  const admin = await Admin.findOne().select("-password -__v");
   if(!admin) {
     return next(createError("Admin not found", 404));
   }
@@ -16,7 +18,8 @@ export const getAdmin = asyncHandler(async (req, res, next) => {
     message: "Admin exist",
     success: true,
     statusCode: 200,
-    admin
+    admin,
+    timeTaken
   })
 })
 

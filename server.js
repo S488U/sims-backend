@@ -8,6 +8,7 @@ import connectDB from "./src/config/db.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 import { createError } from "./src/utils/errorUtils.js";
 import { appLogger } from "./src/middlewares/logger.js";
+import { speedMiddleware } from './src/middlewares/speedMiddleware.js';
 import healthRoute from "./src/routes/healthRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import customerRoutes from "./src/routes/customerRoutes.js";
@@ -34,6 +35,7 @@ const __dirname = path.resolve();
     app.use(cors());
   
     app.set('trust proxy', 1);
+    app.use(speedMiddleware);
     app.use(generalLimiter);
     app.use(appLogger);
 
