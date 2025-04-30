@@ -26,13 +26,10 @@ export const addReport = asyncHandler(async (req, res, next) => {
         return next(createError("Name and Type are required fields", 400));
     }
 
-    if (!Array.isArray(chartData)) {
-        return next(createError("chartData needs to be an array", 400));
-    }
-
     if (
         typeof dateRange !== 'object' || dateRange === null || Array.isArray(dateRange) ||
-        typeof dataDetails !== 'object' || dataDetails === null || Array.isArray(dataDetails)
+        typeof dataDetails !== 'object' || dataDetails === null || Array.isArray(dataDetails) ||
+        typeof chartData !== 'object' || chartData === null || Array.isArray(chartData)
     ) {
         return next(createError("dateRange and dataDetails need to be valid objects", 400));
     }

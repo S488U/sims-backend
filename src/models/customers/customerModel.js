@@ -28,6 +28,10 @@ const customersSchema = new mongoose.Schema(
       type: String,
       enum: ["weekly", "monthly"],
       required: true
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
     }
   },
   {

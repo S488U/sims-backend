@@ -27,7 +27,8 @@ export const getCustomer = asyncHandler(async (req, res, next) => {
   const customers = await Customers.find(filter)
     .sort(sortOptions)
     .limit(limit)
-    .lean();
+    .lean()
+    .select("-__v -password");
 
   if (customers.length === 0) {
     return next(createError("No Customer found", 404));
@@ -48,7 +49,7 @@ export const getCustomerById = asyncHandler(async (req, res, next) => {
     return next(createError("Invalid Customer ID", 400));
   }
 
-  const retailer = await Customers.findById(id);
+  const retailer = await Customers.findById(id).select("-__v -password");
   if (!retailer) {
     return next(createError(`Customer with ID: ${id} not found!`, 404));
   }
@@ -61,18 +62,46 @@ export const getCustomerById = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @ Get customer by email
+export const getCustomerByEmail = asyncHandler(async (req, res, next) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return next(createError("No email provided", 400));
+  }
+
+  const validationResult = verifyData({ email });
+  if (!validationResult.success) {
+    return next(createError(validationResult.message, 400));
+  }
+
+  const customer = await Customers.findOne({ email }).select("_id isActive");
+  if (!customer) {
+    return next(createError(`No customer found in this email ID: ${email}`, 400));
+  } else if (customer.isActive === true) {
+    return next(createError("Customer is already Active", 400));
+  }
+
+  res.status(200).json({
+    message: "Customer found succesfully",
+    success: true,
+    statusCode: 200,
+    customer,
+  });
+});
+
 // @ Customer Account Creation
 export const createCustomer = asyncHandler(async (req, res, next) => {
   const { name, email, phone, address, password, paymentPreference } = req.body;
 
-  if (!name || !email || !phone || !address || !password || !paymentPreference ) {
+  if (!name || !email || !phone || !address || !password || !paymentPreference) {
     return next(createError("All fields are required", 403));
   }
 
   const allowedPreferences = ["weekly", "monthly"];
   if (!allowedPreferences.includes(paymentPreference?.toLowerCase())) {
     return next(createError("Invalid payment preference. Choose either 'weekly' or 'monthly'", 400));
-  }  
+  }
 
   const validationResult = verifyData({ name, email, phone, address, password });
 
@@ -132,9 +161,11 @@ export const updateCustomer = asyncHandler(async (req, res, next) => {
 
 });
 
+
+// @ Patch Update customer details
 export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, phone, address, password } = req.body;
+  const { name, email, phone, address, password, isActive } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(createError("Invalid Customer ID", 400));
@@ -146,6 +177,7 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   if (phone) updateFields.phone = phone;
   if (address) updateFields.address = address;
   if (password) updateFields.password = password;
+  if (isActive) updateFields.isActive = isActive;
 
   const validationResult = verifyData(updateFields);
 
@@ -172,6 +204,7 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
 
 });
 
+// @ delete customers
 export const deleteCustomer = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 

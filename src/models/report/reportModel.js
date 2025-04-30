@@ -19,8 +19,8 @@ const reportSchema = mongoose.Schema({
         end: { type: Date, required: true },
     },
     chartData: {
-        type: Array,
-        default: [],
+        type: Object,
+        default: {},
     },
     dataDetails: {
         type: Object,
