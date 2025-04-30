@@ -39,7 +39,7 @@ export const addReport = asyncHandler(async (req, res, next) => {
 
     const nameValue = name.trim().toLowerCase();
 
-    const checkType = new Set(["inventory", "invoice", "category", "sales", "orders"]);
+    const checkType = new Set(["inventory", "invoice", "category", "sales", "orders", "customers"]);
     const typeValue = type.trim().toLowerCase();
 
     if (!checkType.has(typeValue)) {

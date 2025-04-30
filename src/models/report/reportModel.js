@@ -11,7 +11,7 @@ const reportSchema = mongoose.Schema({
     },
     type: {
         type: String,
-        enum : ["inventory", "invoice", "category", "sales", "orders"],
+        enum : ["inventory", "invoice", "category", "sales", "orders", "customers"],
         required: true
     },
     dateRange: {
