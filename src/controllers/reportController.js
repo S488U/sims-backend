@@ -1,6 +1,7 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import { createError } from "../utils/errorUtils.js";
 import Report from "../models/report/reportModel.js";
+import mongoose from "mongoose";
 
 // @ GET : /api/report  Get all the report
 export const getReport = asyncHandler(async (req, res, next) => {
