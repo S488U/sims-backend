@@ -22,7 +22,7 @@ const customersSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      default: null
     },
     paymentPreference: {
       type: String,

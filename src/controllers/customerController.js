@@ -94,7 +94,7 @@ export const getCustomerByEmail = asyncHandler(async (req, res, next) => {
 export const createCustomer = asyncHandler(async (req, res, next) => {
   const { name, email, phone, address, password, paymentPreference } = req.body;
 
-  if (!name || !email || !phone || !address || !password || !paymentPreference) {
+  if (!name || !email || !phone || !address || !paymentPreference) {
     return next(createError("All fields are required", 403));
   }
 
@@ -103,7 +103,7 @@ export const createCustomer = asyncHandler(async (req, res, next) => {
     return next(createError("Invalid payment preference. Choose either 'weekly' or 'monthly'", 400));
   }
 
-  const validationResult = verifyData({ name, email, phone, address, password });
+  const validationResult = verifyData({ name, email, phone, address });
 
   if (!validationResult.success) {
     return next(createError(validationResult.message, 403));
@@ -114,9 +114,7 @@ export const createCustomer = asyncHandler(async (req, res, next) => {
     return next(createError("Customer with same mail id already exist", 403));
   }
 
-  const hashedPassword = await hashPassword(password);
-
-  customers = new Customers({ name, email, phone, address, password: hashedPassword, paymentPreference });
+  customers = new Customers({ name, email, phone, address, paymentPreference });
   await customers.save();
 
   res.status(201).json({
@@ -165,7 +163,7 @@ export const updateCustomer = asyncHandler(async (req, res, next) => {
 // @ Patch Update customer details
 export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, phone, address, password, isActive } = req.body;
+  const { name, email, phone, address, password } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(createError("Invalid Customer ID", 400));
@@ -177,7 +175,6 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   if (phone) updateFields.phone = phone;
   if (address) updateFields.address = address;
   if (password) updateFields.password = password;
-  if (isActive) updateFields.isActive = isActive;
 
   const validationResult = verifyData(updateFields);
 
@@ -185,7 +182,10 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
     return next(createError(validationResult.message, 403));
   }
 
-  if (password) updateFields.password = await hashPassword(password);
+  if (password) {
+    updateFields.password = await hashPassword(password);
+    updateFields.isActive = true;
+  }
 
   const customers = await Customers.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true });
 
