@@ -5,7 +5,8 @@ import { createError } from "../utils/errorUtils.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import mongoose from "mongoose";
 
-// @ userRoutes Get customers [sort, search, limit ]
+// @ GET Qurey Parameter: /api/customer 
+// Get customers [sort, search, limit ]
 export const getCustomer = asyncHandler(async (req, res, next) => {
   let { search, sort, order, limit } = req.query;
 
@@ -62,7 +63,7 @@ export const getCustomerById = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @ Get customer by email
+// @ GET: /api/customer/email/:emailId : Get customer by email and returns isActive and ID.
 export const getCustomerByEmail = asyncHandler(async (req, res, next) => {
   const { email } = req.params;
 
@@ -90,7 +91,7 @@ export const getCustomerByEmail = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @ Customer Account Creation
+// @ POST : /api/customer : Customer Account Creation, no password field and isActive false.
 export const createCustomer = asyncHandler(async (req, res, next) => {
   const { name, email, phone, address, password, paymentPreference } = req.body;
 
@@ -125,42 +126,44 @@ export const createCustomer = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @ Update Customer Details All at once
-export const updateCustomer = asyncHandler(async (req, res, next) => {
+// @ PATCH : /api/customer/update/:id  : Update customer password, isActive will set to true by updating password.
+export const updateCustomerPassword = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, phone, address, password } = req.body;
+  const { password } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(createError("Invalid Customer ID", 400));
   }
 
-  const validationResult = verifyData({ name, email, phone, address, password });
-
-  if (!validationResult.success) {
-    return next(createError(validationResult.message, 403));
+  const customer = await Customers.findById(id).select("-__v");
+  if (!customer) {
+    return next(createError(`Customer with ID: ${id} does not exist!`, 404));
   }
 
-  const hashedPassword = await hashPassword(password);
-
-  let retailer = await Customers.findByIdAndUpdate(id, { $set: { name, email, phone, address, password: hashedPassword } }, { new: true, timestamps: true });
-
-  if (!retailer) {
-    return next(createError(`Customer with ID: ${id} not found!`, 404));
+  if (customer.isActive === true) {
+    return next(createError("Customer is Active: Report Admin to change details", 400));
   }
 
-  console.log(retailer);
+  if (!password || password === undefined) {
+    return next(createError("Password field is empty", 400));
+  }
+
+  customer.password = await hashPassword(password);
+  customer.isActive = true
+  await customer.save();
+
+  const result = customer.toObject();
+  delete result.password;
 
   res.status(200).json({
-    message: "Customer Data Updated successfully",
+    message: "Customer status updated successfully",
     success: true,
     statusCode: 200,
-    retailer,
+    customer: result,
   });
-
 });
 
-
-// @ Patch Update customer details
+// @ PATCH : /api/customer:id : Update customer details, isActive is not touching here
 export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { name, email, phone, address, password } = req.body;
@@ -184,7 +187,6 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
 
   if (password) {
     updateFields.password = await hashPassword(password);
-    updateFields.isActive = true;
   }
 
   const customers = await Customers.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true });

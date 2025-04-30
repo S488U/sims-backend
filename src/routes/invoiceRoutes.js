@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllInvoice, getInvoiceByCustomer, getSingleInvoice, generateInvoice, approveInvoice, updatePaymentDetails, updateStatus } from "../controllers/invoiceController.js";
+import { getAllInvoice, getInvoiceByCustomer, getSingleInvoice, generateInvoice, approveInvoice, updatePaymentDetails, updateStatus, deleteInvoice } from "../controllers/invoiceController.js";
 
 const router = express.Router();
 
@@ -10,5 +10,6 @@ router.post("/", generateInvoice);
 router.patch("/:invoiceId", approveInvoice);
 router.patch("/payment/:invoiceId", updatePaymentDetails);
 router.patch("/payment/status/:invoiceId", updateStatus);
+router.delete("/:invoiceId", deleteInvoice);
 
 export default router;

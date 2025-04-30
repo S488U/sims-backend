@@ -307,10 +307,10 @@ export const updateStatus = asyncHandler(async (req, res, next) => {
     });
 });
 
-// @ DELETE : Delete Invoice : /api/delete
+// @ DELETE : Delete Invoice : /api/invoice/:invoiceId
 export const deleteInvoice = asyncHandler(async (req, res, next) => {
     const { invoiceId } = req.params;
-
+    
     if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
         return next(createError("No valid Id", 400));
     }
