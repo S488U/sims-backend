@@ -3,9 +3,9 @@ import { getAllInvoice, getInvoiceByCustomer, getSingleInvoice, generateInvoice,
 
 const router = express.Router();
 
-router.get("/draft", getInvoiceByCustomer);
 router.get("/", getAllInvoice);
 router.get("/:invoiceId", getSingleInvoice);
+router.get("/customer/:customerId", getInvoiceByCustomer);
 router.post("/", generateInvoice);
 router.patch("/:invoiceId", approveInvoice);
 router.patch("/payment/:invoiceId", updatePaymentDetails);

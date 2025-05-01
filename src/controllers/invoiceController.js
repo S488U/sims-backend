@@ -72,36 +72,19 @@ export const getSingleInvoice = asyncHandler(async (req, res, next) => {
     });
 })
 
-// @ GET : Get Specific Invoice
-// /api/invoice/draft?customerId=<id>
-// /api/invoice/draft?customerId=<id>&invoiceId=<id>
-// /api/invoice/draft?invoiceId=<id>
-// /api/invoice/draft?customerId=<id>&draft=false
-export const getInvoiceByCustomer = asyncHandler(async (req, res, next) => {
-    const { customerId, invoiceId, draft } = req.query;
-
-    let query = {};
-    console.log(query);
-
+// @ GET :  Get Invoice by customerID  /api/invoice/draft?customerId=<id>
+export const getInvoiceByCustomer = asyncHandler(async(req, res, next) => {
+    const { customerId } = req.params;
+    
     if (customerId !== undefined) {
         if (!mongoose.Types.ObjectId.isValid(customerId)) {
             return next(createError("Invalid Customer ID", 400));
         }
-        query.customerId = customerId;
     }
 
-    if (invoiceId !== undefined) {
-        if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
-            return next(createError("Invalid Invoice ID", 400));
-        }
-        query._id = invoiceId;
-    }
+    const draft = false;
 
-    if (draft !== undefined) {
-        query.draft = 'false';
-    }
-
-    const invoice = await Invoice.find(query).select("-__v");
+    const invoice = await Invoice.find({ customerId, draft }).select("-__v");
     if (!invoice || invoice.length === 0) {
         return next(createError("No invoice Found in this customer", 404));
     }
