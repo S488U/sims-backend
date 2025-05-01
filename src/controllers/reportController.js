@@ -3,7 +3,7 @@ import { createError } from "../utils/errorUtils.js";
 import Report from "../models/report/reportModel.js";
 import mongoose from "mongoose";
 
-// @ GET : /api/report  Get all the report
+// @ GET : /api/report   :  Get all the report
 export const getReport = asyncHandler(async (req, res, next) => {
     const reports = await Report.find().select("-__v").sort({ createdAt: -1 });
 
@@ -19,7 +19,23 @@ export const getReport = asyncHandler(async (req, res, next) => {
     });
 });
 
-// POSt : /api/report Add Report
+// @ GET: /api/report/:reportId  :  Get Single report by ID
+export const getSingleReport = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    if (!id && !mongoose.Types.ObjectId.isValid(id)) return next(createError("Invalid ID", 400));
+
+    const report = await Report.findById(id).select("-__v");
+    if (!report) return next(createError(`No report found in this id: ${id}`, 404));
+
+    res.status(200).json({
+        message: "Report Found successfully",
+        success: true,
+        statusCode: 200,
+        report,
+    });
+});
+
+// POSt : /api/report   :  Add Report
 export const addReport = asyncHandler(async (req, res, next) => {
     const { name, type, description, chartData, dateRange, dataDetails } = req.body;
 
@@ -64,7 +80,7 @@ export const addReport = asyncHandler(async (req, res, next) => {
     });
 });
 
-// DELETE : /api/report/:reportId Delete individual report
+// DELETE : /api/report/:reportId  :  Delete individual report
 export const deleteReport = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
@@ -73,7 +89,7 @@ export const deleteReport = asyncHandler(async (req, res, next) => {
     }
 
     const report = await Report.findByIdAndDelete(id);
-    if(!report) {
+    if (!report) {
         return next(createError(`This ID: ${id} is not found in the report`));
     };
 
