@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { generalLimiter, authLimiter } from "./src/utils/rateLimiter.js";
+// import { generalLimiter, authLimiter } from "./src/utils/rateLimiter.js";
 import path from "path";
 import connectDB from "./src/config/db.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
@@ -37,7 +37,7 @@ const __dirname = path.resolve();
   
     app.set('trust proxy', 1);
     app.use(speedMiddleware);
-    app.use(generalLimiter);
+    // app.use(generalLimiter);
     app.use(appLogger);
 
     app.use(express.json());
