@@ -39,14 +39,21 @@ export const login = asyncHandler( async(req, res, next) => {
         return next(createError("Invalid password", 401));
     }
 
+    const userData = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        isAdmin,
+    }
+    
+    if (!isAdmin && user.address) {
+        userData.address = user.address;
+    }
+
     res.status(200).json({
         message: "Login Successful",
         token: generateToken(user._id, isAdmin),
-        user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            isAdmin,
-        },
+        user: userData,
     })
 });

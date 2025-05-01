@@ -96,10 +96,10 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
         }
 
         item.price = inventoryItem.productPrice;
-        totalCalculatedAmount += (item.price * parsedQuantity); 
+        totalCalculatedAmount += (item.price * parsedQuantity);
 
         item.category = inventoryItem.category;
-        item.name = inventoryItem.productName; 
+        item.name = inventoryItem.productName;
 
         inventoryItem.quantity -= item.quantity;
         await inventoryItem.save();
@@ -116,7 +116,7 @@ export const placeOrder = asyncHandler(async (req, res, next) => {
     });
 });
 
-// @ PATCH /api/order/:orderId 
+// @ PATCH /api/order/:orderId : status update
 export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -126,7 +126,7 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
     }
 
     if (!status) {
-        return next(createError("All fields are required", 400));
+        return next(createError("Status is required", 400));
     }
 
     const validStatus = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
@@ -149,15 +149,60 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
                 return inventoryItem.save();
             }
         });
-    
+
         await Promise.all(inventoryUpdates);
     }
 
-    order.status = lowerCaseStatus;
-    await order.save();
+    const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        { status: lowerCaseStatus },
+        { new: true }
+    );
 
     res.status(200).json({
         message: "Order status updated successfully",
+        success: true,
+        statusCode: 200,
+        order: updatedOrder,
+    });
+});
+
+
+export const cancelOrder = asyncHandler(async (req, res, next) => {
+    const { orderId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return next(createError("Invalid order Id", 400));
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return next(createError("Order not found", 404));
+    }
+
+    if (order.status === "cancelled") {
+        return next(createError("Order is already cancelled", 400));
+    }
+
+    if (order.status !== "pending") {
+        return next(createError("Order can't be cancel now, its already approved", 400));
+    }
+
+    const inventoryUpdates = order.orderProducts.map(async (item) => {
+        const inventoryItem = await Inventory.findById(item.inventoryId);
+        if (inventoryItem) {
+            inventoryItem.quantity += item.quantity;
+            return inventoryItem.save();
+        }
+    });
+
+    await Promise.all(inventoryUpdates);
+
+    order.status = "cancelled";
+    await order.save();
+
+    res.status(200).json({
+        message: "Order cancelled successfully",
         success: true,
         statusCode: 200,
         order,

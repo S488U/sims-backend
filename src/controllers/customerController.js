@@ -79,12 +79,10 @@ export const getCustomerByEmail = asyncHandler(async (req, res, next) => {
   const customer = await Customers.findOne({ email }).select("_id isActive");
   if (!customer) {
     return next(createError(`No customer found in this email ID: ${email}`, 400));
-  } else if (customer.isActive === true) {
-    return next(createError("Customer is already Active", 400));
   }
 
   res.status(200).json({
-    message: "Customer found succesfully",
+    message: "Customer found successfully",
     success: true,
     statusCode: 200,
     customer,
