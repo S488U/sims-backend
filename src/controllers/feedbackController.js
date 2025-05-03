@@ -21,7 +21,7 @@ export const getAllFeedback = asyncHandler(async (req, res, next) => {
     });
 });
 
-// @ GET /api/feedback?customerId=<id>&staffId=<id> 
+// @ GET /api/feedback/user?customerId=<id>&staffId=<id> 
 // You can give two query or one single query. Both will work.
 export const getFeedbacksForUsers = asyncHandler(async (req, res, next) => {
     const { staffId, customerId } = req.query;

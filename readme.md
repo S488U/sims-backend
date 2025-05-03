@@ -1,7 +1,14 @@
-### To start the server :
+## 🚀 Getting Started
 
-`npm install`
+To install dependencies and run the development server:
 
-`npm run dev` or `npm test`
+```bash
+npm install
+npm run dev
+```
 
+Or, to run test mode:
 
+```bash
+npm test
+```

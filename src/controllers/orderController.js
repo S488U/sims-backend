@@ -34,7 +34,7 @@ export const getOrders = asyncHandler(async (req, res, next) => {
         if (!orders || orders.length === 0) {
             return next(createError("No orders found", 404));
         }
-    } else {
+    } else if (!req.customers) {
         orders = await Order.find()
             .populate("customerId", "name email phone address")
             .populate("orderProducts.inventoryId", "productName price category");
@@ -43,7 +43,10 @@ export const getOrders = asyncHandler(async (req, res, next) => {
             return next(createError("No orders found", 404));
         }
         orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else {
+        return next(createError("Access denied", 403));
     }
+
     res.status(200).json({
         message: `${orders.length} Orders found successfully`,
         success: true,
@@ -168,6 +171,7 @@ export const updateOrderStatus = asyncHandler(async (req, res, next) => {
 });
 
 
+// @ PATCH : /api/order/cancel/:orderId  : To cancel the order 
 export const cancelOrder = asyncHandler(async (req, res, next) => {
     const { orderId } = req.params;
 

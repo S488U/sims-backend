@@ -4,19 +4,15 @@ import { createCustomer, getCustomer, getCustomerById, getCustomerByEmail, updat
 
 const router = express.Router();
 
-router.get("/", getCustomer);
-router.get("/:id", getCustomerById);
-router.get("/email/:email", getCustomerByEmail);
-router.post("/", createCustomer);
+// Admin Access
+router.post("/", verifyToken, adminAccess, createCustomer);
+router.patch("/:id", verifyToken, adminAccess, updateCustomerColumn);
+router.delete("/:id", verifyToken, adminAccess, deleteCustomer);
 
-//Update Customer
-router.patch("/update/:id", updateCustomerPassword);
-router.patch("/:id", updateCustomerColumn);
-
-// router.put("/:id", verifyToken, updateCustomer);
-// router.patch("/:id", verifyToken, updateCustomerColumn);
-
-//Delete Customer
-router.delete("/:id", deleteCustomer);
+// Customer & Admin Access
+router.get("/", verifyToken, getCustomer);
+router.get("/:id", verifyToken, getCustomerById);
+router.get("/email/:email", verifyToken, getCustomerByEmail);
+router.patch("/update/:id", verifyToken, updateCustomerPassword);
 
 export default router;

@@ -14,7 +14,6 @@ import adminRoutes from "./src/routes/adminRoutes.js";
 import customerRoutes from "./src/routes/customerRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import supplierRoutes from "./src/routes/supplierRoutes.js";
-import productRoutes from "./src/routes/productRoutes.js";
 import inventoryRoutes from "./src/routes/inventoryRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import feedbackRoutes from "./src/routes/feedbackRoutes.js";
@@ -49,7 +48,6 @@ const __dirname = path.resolve();
     app.use("/api/admin", adminRoutes);
     app.use("/api/customer", customerRoutes)
     app.use("/api/supplier", supplierRoutes);
-    app.use("/api/products", productRoutes);
     app.use("/api/inventory", inventoryRoutes);
     app.use("/api/orders", orderRoutes);
     app.use("/api/feedback", feedbackRoutes);
