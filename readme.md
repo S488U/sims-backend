@@ -1,4 +1,4 @@
-## 🚀 Getting Started
+## Getting Started
 
 To install dependencies and run the development server:
 
