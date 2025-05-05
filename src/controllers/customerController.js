@@ -5,6 +5,15 @@ import { createError } from "../utils/errorUtils.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import mongoose from "mongoose";
 
+const decodeBase64 = async (item) => {
+  if (!item || item === undefined) {
+    return { success: false, message: "Base64 Item is undefined or not exist" };
+  }
+
+  const value = Buffer.from(item, "base64").toString("utf-8");
+  return { success: true, value }
+}
+
 // @ GET Qurey Parameter: /api/customer 
 // Get customers [sort, search, limit ]
 export const getCustomer = asyncHandler(async (req, res, next) => {
@@ -202,6 +211,46 @@ export const updateCustomerColumn = asyncHandler(async (req, res, next) => {
     columnsUpdated: Object.keys(updateFields),
   });
 
+});
+
+// @ PATCH : /api/customer/reset/:id Password reset for customers.
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { password } = req.body;
+
+  if (!id || id === undefined) {
+    return next(createError("Id could not be undefined", 400));
+  }
+
+  if (!password || password === undefined) {
+    return next(createError("Password could not be undefined", 400));
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(createError("Invalid ID", 400));
+  }
+
+  const customer = await Customers.findById(id);
+  if (!customer) {
+    return next(createError("Customer with the ID does not found", 404));
+  }
+
+  const decodePassword = await decodeBase64(password);
+  if (!decodePassword.success) {
+    return next(createError(decodePassword.message, 400));
+  }
+
+  const checkStrength = verifyData({ password: decodePassword.value });
+  if (!checkStrength.success) {
+    return next(createError(checkStrength.message, 400));
+  }
+  const encryptedPassword = await hashPassword(decodePassword.value);
+
+  customer.password = encryptedPassword;
+  customer.save();
+
+
+  res.status(204).send();
 });
 
 // @ delete customers
