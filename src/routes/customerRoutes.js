@@ -12,7 +12,7 @@ router.delete("/:id", verifyToken, adminAccess, deleteCustomer);
 // Customer & Admin Access
 router.get("/", verifyToken, getCustomer);
 router.get("/:id", verifyToken, getCustomerById);
-router.patch("/reset/:id", resetPassword);
+router.patch("/reset/:id", verifyToken, resetPassword);
 
 // No Token verification
 router.get("/email/:email", getCustomerByEmail);

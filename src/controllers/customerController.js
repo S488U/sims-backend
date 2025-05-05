@@ -155,7 +155,18 @@ export const updateCustomerPassword = asyncHandler(async (req, res, next) => {
     return next(createError("Password field is empty", 400));
   }
 
-  customer.password = await hashPassword(password);
+  const decodePassword = await decodeBase64(password);
+  if (!decodePassword.success) {
+    return next(createError(decodePassword.message, 400));
+  }
+
+  const checkStrength = verifyData({ password: decodePassword.value });
+  if (!checkStrength.success) {
+    return next(createError(checkStrength.message, 400));
+  }
+  const encryptedPassword = await hashPassword(decodePassword.value);
+
+  customer.password = encryptedPassword;
   customer.isActive = true
   await customer.save();
 
@@ -247,7 +258,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   const encryptedPassword = await hashPassword(decodePassword.value);
 
   customer.password = encryptedPassword;
-  customer.save();
+  await customer.save();
 
 
   res.status(204).send();
