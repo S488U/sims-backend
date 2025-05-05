@@ -12,7 +12,9 @@ router.delete("/:id", verifyToken, adminAccess, deleteCustomer);
 // Customer & Admin Access
 router.get("/", verifyToken, getCustomer);
 router.get("/:id", verifyToken, getCustomerById);
-router.get("/email/:email", verifyToken, getCustomerByEmail);
-router.patch("/update/:id", verifyToken, updateCustomerPassword);
+
+// No Token verification
+router.get("/email/:email", getCustomerByEmail);
+router.patch("/update/:id", updateCustomerPassword);
 
 export default router;
