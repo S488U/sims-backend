@@ -153,11 +153,7 @@ export const generateInvoice = asyncHandler(async (req, res, next) => {
     }
 
     if (!invoiceCreated) {
-        return res.status(200).json({
-            message: "No new invoices generated. No matching delivered orders found.",
-            success: false,
-            statusCode: 200
-        });
+        return createError("No new invoices generated. No matching delivered orders found.", 422);
     }
 
     res.status(201).json({
