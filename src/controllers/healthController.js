@@ -41,8 +41,11 @@ export const mainRoute = async (req, res, next) => {
         <p class="text-lg mb-2">📚 <span class="font-semibold">API Doc:</span> 
           <a href="https://documenter.getpostman.com/view/32326364/2sB2cUANcX" target="_blank" class="text-purple-400 underline">View Postman Docs</a>
         </p>
-        <p class="text-lg mt-4">🖥️ <span class="font-semibold">Frontend Dashboard:</span> 
+        <p class="text-lg mt-4">🖥️ <span class="font-semibold">Admin Dashboard:</span> 
           <a href="https://sims-dashboard-front.vercel.app/" target="_blank" class="text-purple-400 underline">sims-dashboard-front.vercel.app</a>
+        </p>
+        <p class="text-lg mt-4">🖥️ <span class="font-semibold">Retailer Dashboard:</span> 
+          <a href="https://sims-retailer-front.vercel.app/" target="_blank" class="text-purple-400 underline">sims-dashboard-front.vercel.app</a>
         </p>
       </div>
     </div>
