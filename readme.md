@@ -1,8 +1,8 @@
+[IMS System](https://sims-dashboard-front.vercel.app/) | [Customer Portal](https://sims-retailer-front.vercel.app/)
+
 # SIMS Backend
 
 This is the Backend Code of Inventory Management System that we developed for Final Year College Project. The Server handles both the Admin Dashboard and Customer Portal.
-
-[IMS System](https://sims-dashboard-front.vercel.app/) | [Customer Portal](https://sims-retailer-front.vercel.app/)
 
 You can visit the server: https://suims.vercel.app/
 
