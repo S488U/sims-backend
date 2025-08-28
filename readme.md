@@ -1,4 +1,4 @@
-[IMS System](https://sims-dashboard-front.vercel.app/) | [Customer Portal](https://sims-retailer-front.vercel.app/)
+[IMS System](https://sims-dashboard-front.vercel.app/) - [Code](https://github.com/ioNihal/sims-dashboard-front) |[Customer Portal](https://sims-retailer-front.vercel.app/) - [Code](https://github.com/ioNihal/sims-retailer-front)
 
 # SIMS Backend
 
