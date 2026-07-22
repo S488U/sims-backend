@@ -138,7 +138,7 @@ Hey Guys, I've shared the API documentation Here: https://documenter.getpostman.
 - Extensible architecture
 
 ## License
-This project is licensed under the **ISC License**.
+This project is licensed under the **ISC License**. See the [LICENSE](https://github.com/S488U/sims-backend/blob/main/LICENSE) file for details.
 
 > Developed with ❤️ and focus by [Shahabas Abdul Hameed](https://github.com/S488U) and [Nihal K](https://github.com/ioNihal).
 
